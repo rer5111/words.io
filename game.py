@@ -10,10 +10,10 @@ def text_draw(surface, text, font, text_clr, text_pos, centered):
         surface.blit(img, img.get_rect(center=text_pos))
 
 def update_gui():
-    global gui_list, buttons
+    global gui_list, gui_buttons
     for i in screens[current_screen]["GUI"]:
         gui_list.append(i)
-    buttons = screens[current_screen]["Buttons"]
+    gui_buttons = screens[current_screen]["Buttons"]
 
 class GUI:
     def __init__(self, surface, coordinates, size, border_width, colour1, colour2, colour_text, text, text_size, centered, image):
@@ -123,7 +123,7 @@ def update_all_gui():   #ok so, crazy stuff, this actually need to be a function
 }
 
 update_all_gui()
-buttons = update_gui()
+update_button_func = update_gui()
 
 while running:
     screen.fill((0, 0, 0))
@@ -150,11 +150,13 @@ while running:
                 main_screen = pygame.Surface((width_screen, height_screen), pygame.SRCALPHA)
             gui_list = []
             update_all_gui()
-            buttons =update_gui()
+            update_button_func =update_gui()
         
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             x_pressed, y_pressed = pygame.mouse.get_pos()
-            for button in 
+            for button in gui_buttons:
+                pass # рер я не
+
     for window in gui_list:
         window.draw()    
     
