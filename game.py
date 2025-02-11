@@ -95,12 +95,14 @@ def update_all_gui():   #ok so, crazy stuff, this actually need to be a function
             GUI(main_screen, (100*width_mult, 600*height_mult), (400*width_mult, 100*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "Credits", 40, True, "")
         ],
         "Buttons":{
-            ((100*width_mult, 300*height_mult), (400*width_mult, 100*height_mult))
+            ((100*width_mult, 300*height_mult), (400*width_mult, 100*height_mult)):"current_screen = \"start2\"",
+            ((100*width_mult, 450*height_mult), (400*width_mult, 100*height_mult)):"current_screen = \"settings\"",
+            ((100*width_mult, 600*height_mult), (400*width_mult, 100*height_mult)):"current_screen = \"credits\""
         }
     }
     credits_screen = {
         "GUI":[
-
+            
         ],
         "Buttons":{
             ()
@@ -131,6 +133,7 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        
         if event.type == pygame.VIDEORESIZE:    # If the screen gets resized we update all gui to the new main screen (also all the formulas get updated)
             if event.w/16 > event.h/9:  #normalise the screen to a 16:9 aspect ratio (creates black bars but its fine)
                 horizontal_bars = True
@@ -147,8 +150,11 @@ while running:
                 main_screen = pygame.Surface((width_screen, height_screen), pygame.SRCALPHA)
             gui_list = []
             update_all_gui()
-            update_gui()
-
+            buttons =update_gui()
+        
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            x_pressed, y_pressed = pygame.mouse.get_pos()
+            for button in 
     for window in gui_list:
         window.draw()    
     
