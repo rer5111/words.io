@@ -10,10 +10,10 @@ def text_draw(surface, text, font, text_clr, text_pos, centered):
         surface.blit(img, img.get_rect(center=text_pos))
 
 def update_gui():
-    global gui_list, gui_buttons
+    global gui_list, buttons
     for i in screens[current_screen]["GUI"]:
         gui_list.append(i)
-    gui_buttons = screens[current_screen]["Buttons"]
+    buttons = screens[current_screen]["Buttons"]
 
 class GUI:
     def __init__(self, surface, coordinates, size, border_width, colour1, colour2, colour_text, text, text_size, centered, image):
@@ -54,6 +54,11 @@ class GUI:
         except ValueError:
             pass
 
+class Button():
+    def __init__(self, pos, size):
+        self.x_pos, self.y_pos = pos
+        self.width, self.height = size
+
  
 pygame.init()
 width_screen, height_screen = 1600, 900
@@ -89,41 +94,80 @@ def update_all_gui():   #ok so, crazy stuff, this actually need to be a function
     global screens
     start_screen = {
         "GUI":[
-            GUI(main_screen, (300*width_mult, 50*height_mult), (1000*width_mult, 200*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "", 0, False, sprites["title"]),
-            GUI(main_screen, (100*width_mult, 300*height_mult), (400*width_mult, 100*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "Play", 40, True, sprites["play"]),
-            GUI(main_screen, (100*width_mult, 450*height_mult), (400*width_mult, 100*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "Settings", 40, True, sprites["settings"]),
-            GUI(main_screen, (100*width_mult, 600*height_mult), (400*width_mult, 100*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "Credits", 40, True, "")
+            GUI(main_screen, (400*width_mult, 50*height_mult), (800*width_mult, 200*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "", 0, False, sprites["title"]),
+            GUI(main_screen, (100*width_mult, 300*height_mult), (400*width_mult, 100*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "Play", int(40*height_mult), True, sprites["play"]),
+            GUI(main_screen, (100*width_mult, 450*height_mult), (400*width_mult, 100*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "Settings", int(40*height_mult), True, sprites["settings"]),
+            GUI(main_screen, (100*width_mult, 600*height_mult), (400*width_mult, 100*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "Credits", int(40*height_mult), True, "")
         ],
         "Buttons":{
-            ((100*width_mult, 300*height_mult), (400*width_mult, 100*height_mult)):"current_screen = \"start2\"",
-            ((100*width_mult, 450*height_mult), (400*width_mult, 100*height_mult)):"current_screen = \"settings\"",
-            ((100*width_mult, 600*height_mult), (400*width_mult, 100*height_mult)):"current_screen = \"credits\""
+            Button((100*width_mult, 300*height_mult), (400*width_mult, 100*height_mult)):"current_screen = \"start2\"",
+            Button((100*width_mult, 450*height_mult), (400*width_mult, 100*height_mult)):"current_screen = \"settings\"",
+            Button((100*width_mult, 600*height_mult), (400*width_mult, 100*height_mult)):"current_screen = \"credits\""
+        }
+    }
+    start_screen2 = {
+        "GUI":[
+            GUI(main_screen, (400*width_mult, 50*height_mult), (800*width_mult, 200*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "", 0, False, sprites["title"]),
+            GUI(main_screen, (100*width_mult, 300*height_mult), (400*width_mult, 100*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "Play", int(40*height_mult), True, sprites["play"]),
+            GUI(main_screen, (100*width_mult, 450*height_mult), (400*width_mult, 100*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "Settings", int(40*height_mult), True, sprites["settings"]),
+            GUI(main_screen, (100*width_mult, 600*height_mult), (400*width_mult, 100*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "Credits", int(40*height_mult), True, ""),
+            GUI(main_screen, (525*width_mult, 300*height_mult), (400*width_mult, 100*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "Endless", int(40*height_mult), True, ""),
+            GUI(main_screen, (525*width_mult, 425*height_mult), (400*width_mult, 100*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "Puzzle", int(40*height_mult), True, "")
+        ],
+        "Buttons":{
+            Button((100*width_mult, 300*height_mult), (400*width_mult, 100*height_mult)):"current_screen = \"start\"",
+            Button((100*width_mult, 450*height_mult), (400*width_mult, 100*height_mult)):"current_screen = \"settings\"",
+            Button((100*width_mult, 600*height_mult), (400*width_mult, 100*height_mult)):"current_screen = \"credits\"",
+            Button((525*width_mult, 300*height_mult), (400*width_mult, 100*height_mult)):"current_screen = \"game\"",
+            Button((525*width_mult, 425*height_mult), (400*width_mult, 100*height_mult)):"current_screen = \"level_select\""
         }
     }
     credits_screen = {
         "GUI":[
-            
+            GUI(main_screen, (1500*width_mult, 25*height_mult), (75*width_mult, 75*height_mult), 5*height_mult, (255, 0, 0), (155, 0, 0), (0, 0, 0), "X", int(100*height_mult), True, ""),
+            GUI(main_screen, (500*width_mult, 50*height_mult), (600*width_mult, 100*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "Credits", int(120*height_mult), True, ""),
+            GUI(main_screen, (25*width_mult, 250*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), "Here's a list of all the wonderful people that made this game possible:", int(40*height_mult), False, ""),
+            GUI(main_screen, (25*width_mult, 300*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 0), "Rer_5111", int(40*height_mult), False, ""),
+            GUI(main_screen, (150*width_mult, 300*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " (me) - lead designer, programmer, creator", int(40*height_mult), False, ""),
+            GUI(main_screen, (25*width_mult, 350*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 0, 0), "Tabller", int(40*height_mult), False, ""),
+            GUI(main_screen, (125*width_mult, 350*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - contributor (he did cool suggestions)", int(40*height_mult), False, ""),
+            GUI(main_screen, (25*width_mult, 400*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (0, 0, 255), "Intervinn", int(40*height_mult), False, ""),
+            GUI(main_screen, (155*width_mult, 400*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - contributor (he helped a lot with code)", int(40*height_mult), False, ""),
+            GUI(main_screen, (25*width_mult, 450*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 120, 0), "Kotyarendj", int(40*height_mult), False, ""),
+            GUI(main_screen, (175*width_mult, 450*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - artist (lots of cool sprites)", int(40*height_mult), False, "")
         ],
         "Buttons":{
-            ()
+            Button((1500*width_mult, 25*height_mult), (75*width_mult, 75*height_mult)):"current_screen = \"start\""
         }
     }
     settings_screen = {
         "GUI":[
-
+            GUI(main_screen, (1500*width_mult, 25*height_mult), (75*width_mult, 75*height_mult), 5*height_mult, (255, 0, 0), (155, 0, 0), (0, 0, 0), "X", int(100*height_mult), True, ""),
+            GUI(main_screen, (25*width_mult, 400*height_mult), (1550*width_mult, 150*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "WIP (there are no settings yet, sorry!)", int(120*height_mult), True, ""),
         ],
         "Buttons":{
-            ()
+            Button((1500*width_mult, 25*height_mult), (75*width_mult, 75*height_mult)):"current_screen = \"start\""
+        }
+    }
+    level_select = {
+        "GUI":[
+            GUI(main_screen, (1500*width_mult, 25*height_mult), (75*width_mult, 75*height_mult), 5*height_mult, (255, 0, 0), (155, 0, 0), (0, 0, 0), "X", int(100*height_mult), True, ""),
+            GUI(main_screen, (300*width_mult, 50*height_mult), (1000*width_mult, 200*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "Level select", int(160*height_mult), True, ""),
+        ],
+        "Buttons":{
+            Button((1500*width_mult, 25*height_mult), (75*width_mult, 75*height_mult)):"current_screen = \"start\""
         }
     }
     screens = {
     "start": start_screen,
+    "start2": start_screen2,
     "credits": credits_screen,
-    "settings": settings_screen
+    "settings": settings_screen,
+    "level_select": level_select
 }
 
 update_all_gui()
-update_button_func = update_gui()
+update_gui()
 
 while running:
     screen.fill((0, 0, 0))
@@ -133,7 +177,6 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        
         if event.type == pygame.VIDEORESIZE:    # If the screen gets resized we update all gui to the new main screen (also all the formulas get updated)
             if event.w/16 > event.h/9:  #normalise the screen to a 16:9 aspect ratio (creates black bars but its fine)
                 horizontal_bars = True
@@ -150,12 +193,19 @@ while running:
                 main_screen = pygame.Surface((width_screen, height_screen), pygame.SRCALPHA)
             gui_list = []
             update_all_gui()
-            update_button_func =update_gui()
-        
+            update_gui()
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             x_pressed, y_pressed = pygame.mouse.get_pos()
-            for button in gui_buttons:
-                pass # рер я не
+            if horizontal_bars:
+                x_pressed -= (screen.get_width()-width_screen)/2
+            else:
+                y_pressed -= (screen.get_height()-height_screen)/2
+            for button in buttons:
+                if button.x_pos < x_pressed < button.x_pos+button.width and button.y_pos < y_pressed < button.y_pos + button.height:
+                    exec(buttons.get(button))
+                    gui_list = []
+                    update_gui()
+
 
     for window in gui_list:
         window.draw()    
