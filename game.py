@@ -2,7 +2,7 @@ import pygame, random, tkinter, math
 from perlin_noise import *
 from data import *
 
-def text_draw(surface, text, font, text_clr, text_pos, centered):
+def text_draw(surface, text: str = '', font=pygame.font.Font, text_clr=tuple[float, float, float], text_pos=tuple[float, float], centered=bool):
     img = font.render(f"{text}", True, text_clr)
     if not centered:
         surface.blit(img, text_pos)
@@ -16,7 +16,7 @@ def update_gui():
     buttons = screens[current_screen]["Buttons"]
 
 class GUI:
-    def __init__(self, surface, coordinates, size, border_width, colour1, colour2, colour_text, text, text_size, centered, image):
+    def __init__(self, surface, coordinates=tuple[float, float], size=tuple[float, float], border_width=float, colour1=tuple[float, float, float], colour2=tuple[float, float, float], colour_text=tuple[float, float, float], text: str = "", text_size=int, centered=bool, image: str = ""):
         self.surface = surface  #on what draw
         self.x, self.y = coordinates   #where draw 
         self.width, self.height = size  #how much draw
@@ -28,29 +28,27 @@ class GUI:
         self.text_size = text_size  #size of text if text present
         self.centered = centered    #where draw text
         self.img = image    #image if present
-
+    
     def draw(self):
         try:
-            if self.img == "":  #no image gui
-                pygame.draw.rect(self.surface, self.colour1, pygame.Rect(self.x, self.y, self.width, self.height))
-                pygame.draw.rect(self.surface, self.colour2, pygame.Rect(self.x + self.width_border, self.y + self.width_border, self.width - self.width_border*2, self.height - self.width_border*2))
-                if self.text != "": #text gui
-                    if self.centered:
-                        text_draw(self.surface, self.text, pygame.font.SysFont("Fixedsys", self.text_size), (self.colour_text), (self.x+self.width/2, self.y+self.height/2), True) 
-                    else:
-                        text_draw(self.surface, self.text, pygame.font.SysFont("Fixedsys", self.text_size), (self.colour_text), (self.x + self.width_border+5, self.y + self.width_border + 5), False) 
-            elif self.text == "":   #picture gui
-                pygame.draw.rect(self.surface, self.colour1, pygame.Rect(self.x, self.y, self.width, self.height))
-                pygame.draw.rect(self.surface, self.colour2, pygame.Rect(self.x + self.width_border, self.y + self.width_border, self.width - self.width_border*2, self.height - self.width_border*2))
-                self.surface.blit(pygame.transform.scale(self.img, (self.width-self.width_border*2, self.height-self.width_border*2)), (self.x+self.width_border, self.y+self.width_border))
-            else:   #combined gui
-                pygame.draw.rect(self.surface, self.colour1, pygame.Rect(self.x, self.y, self.width, self.height))
-                pygame.draw.rect(self.surface, self.colour2, pygame.Rect(self.x + self.width_border, self.y + self.width_border, self.width - self.width_border*2, self.height - self.width_border*2))
-                self.surface.blit(pygame.transform.scale(self.img, (self.height-self.width_border*2, self.height-self.width_border*2)), (self.x+self.width_border, self.y+self.width_border))
-                if self.centered:
-                    text_draw(self.surface, self.text, pygame.font.SysFont("Fixedsys", self.text_size), (self.colour_text), ((self.x+(self.height-self.width_border)+self.width_border+(self.width-self.width_border*2-self.height)/2), self.y+self.height/2), True)
+            pygame.draw.rect(self.surface, self.colour1, pygame.Rect(self.x, self.y, self.width, self.height))
+            pygame.draw.rect(self.surface, self.colour2, pygame.Rect(self.x + self.width_border, self.y + self.width_border, self.width - self.width_border*2, self.height - self.width_border*2))
+            try:
+                if self.text != "":
+                    img = self.surface.blit(pygame.transform.scale(self.img, (self.height-self.width_border*2, self.height-self.width_border*2)), (self.x+self.width_border, self.y+self.width_border))
                 else:
-                    pass
+                    img = self.surface.blit(pygame.transform.scale(self.img, (self.width-self.width_border*2, self.height-self.width_border*2)), (self.x+self.width_border, self.y+self.width_border))
+            except Exception as e:
+                pass
+
+            if self.centered:
+                if self.img != "":
+                    text_draw(self.surface, self.text, pygame.font.SysFont("Fixedsys", self.text_size), (self.colour_text), ((self.x+(self.height-self.width_border)+self.width_border+(self.width-self.width_border*2-self.height)/2), self.y+self.height/2), bool)
+                else:
+                    text_draw(self.surface, self.text, pygame.font.SysFont("Fixedsys", self.text_size), (self.colour_text), (self.x+self.width/2, self.y+self.height/2), bool) 
+            else:
+                text_draw(self.surface, self.text, pygame.font.SysFont("Fixedsys", self.text_size), (self.colour_text), (self.x + self.width_border+5, self.y + self.width_border + 5), bool) 
+
         except ValueError:
             pass
 
@@ -59,7 +57,7 @@ class Button():
         self.x_pos, self.y_pos = pos
         self.width, self.height = size
 
- 
+
 pygame.init()
 width_screen, height_screen = 1600, 900
 width_mult, height_mult = 1, 1
@@ -126,15 +124,15 @@ def update_all_gui():   #ok so, crazy stuff, this actually need to be a function
         "GUI":[
             GUI(main_screen, (1500*width_mult, 25*height_mult), (75*width_mult, 75*height_mult), 5*height_mult, (255, 0, 0), (155, 0, 0), (0, 0, 0), "X", int(100*height_mult), True, ""),
             GUI(main_screen, (500*width_mult, 50*height_mult), (600*width_mult, 100*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "Credits", int(120*height_mult), True, ""),
-            GUI(main_screen, (25*width_mult, 250*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), "Here's a list of all the wonderful people that made this game possible:", int(40*height_mult), False, ""),
-            GUI(main_screen, (25*width_mult, 300*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 0), "Rer_5111", int(40*height_mult), False, ""),
-            GUI(main_screen, (150*width_mult, 300*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " (me) - lead designer, programmer, creator", int(40*height_mult), False, ""),
-            GUI(main_screen, (25*width_mult, 350*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 0, 0), "Tabller", int(40*height_mult), False, ""),
-            GUI(main_screen, (125*width_mult, 350*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - contributor (he did cool suggestions)", int(40*height_mult), False, ""),
-            GUI(main_screen, (25*width_mult, 400*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (0, 0, 255), "Intervinn", int(40*height_mult), False, ""),
-            GUI(main_screen, (155*width_mult, 400*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - contributor (he helped a lot with code)", int(40*height_mult), False, ""),
-            GUI(main_screen, (25*width_mult, 450*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 120, 0), "Kotyarendj", int(40*height_mult), False, ""),
-            GUI(main_screen, (175*width_mult, 450*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - artist (lots of cool sprites)", int(40*height_mult), False, "")
+            GUI(main_screen, (475*width_mult, 250*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), "Here's a list of all the wonderful people that made this game possible:", int(40*height_mult), False, ""),
+            GUI(main_screen, (75*width_mult, 300*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 0), "Rer_5111", int(40*height_mult), False, ""),
+            GUI(main_screen, (425*width_mult, 300*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " (me) - lead designer, programmer, creator", int(40*height_mult), False, ""),
+            GUI(main_screen, (75*width_mult, 350*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 0, 0), "Tabller", int(40*height_mult), False, ""),
+            GUI(main_screen, (390*width_mult, 350*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - contributor (he did cool suggestions)", int(40*height_mult), False, ""),
+            GUI(main_screen, (75*width_mult, 400*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (0, 0, 255), "Intervinn", int(40*height_mult), False, ""),
+            GUI(main_screen, (410*width_mult, 400*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - contributor (he helped a lot with code)", int(40*height_mult), False, ""),
+            GUI(main_screen, (75*width_mult, 450*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 120, 0), "Kotyarendj", int(40*height_mult), False, ""),
+            GUI(main_screen, (340*width_mult, 450*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - artist (lots of cool sprites)", int(40*height_mult), False, "")
         ],
         "Buttons":{
             Button((1500*width_mult, 25*height_mult), (75*width_mult, 75*height_mult)):"current_screen = \"start\""
@@ -168,6 +166,7 @@ def update_all_gui():   #ok so, crazy stuff, this actually need to be a function
 
 update_all_gui()
 update_gui()
+
 
 while running:
     screen.fill((0, 0, 0))
