@@ -2,6 +2,15 @@ import pygame, random, tkinter, math
 from perlin_noise import *
 from data import *
 
+def level_get(pos, size, clr1, clr2, clrtxt, level):
+    if level_access.get(level):
+        text = level
+        pic = ""
+    else:
+        pic = sprites["lock"]
+        text = ""
+    return GUI(main_screen, pos, size, 5*height_mult, clr1, clr2, clrtxt, text, int(90*height_mult), True, pic)
+
 def text_draw(surface, text: str = '', font=pygame.font.Font, text_clr=tuple[float, float, float], text_pos=tuple[float, float], centered=bool):
     img = font.render(f"{text}", True, text_clr)
     if not centered:
@@ -28,29 +37,45 @@ class GUI:
         self.text_size = text_size  #size of text if text present
         self.centered = centered    #where draw text
         self.img = image    #image if present
-    
+
     def draw(self):
         try:
-            pygame.draw.rect(self.surface, self.colour1, pygame.Rect(self.x, self.y, self.width, self.height))
-            pygame.draw.rect(self.surface, self.colour2, pygame.Rect(self.x + self.width_border, self.y + self.width_border, self.width - self.width_border*2, self.height - self.width_border*2))
-            try:
-                if self.text != "":
-                    img = self.surface.blit(pygame.transform.scale(self.img, (self.height-self.width_border*2, self.height-self.width_border*2)), (self.x+self.width_border, self.y+self.width_border))
+            if self.img == "":  #no image gui
+                pygame.draw.rect(self.surface, self.colour1, pygame.Rect(self.x, self.y, self.width, self.height))
+                pygame.draw.rect(self.surface, self.colour2, pygame.Rect(self.x + self.width_border, self.y + self.width_border, self.width - self.width_border*2, self.height - self.width_border*2))
+                if self.text != "": #text gui
+                    if self.centered:
+                        text_draw(self.surface, self.text, pygame.font.SysFont("Fixedsys", self.text_size), (self.colour_text), (self.x+self.width/2, self.y+self.height/2), True) 
+                    else:
+                        text_draw(self.surface, self.text, pygame.font.SysFont("Fixedsys", self.text_size), (self.colour_text), (self.x + self.width_border+5, self.y + self.width_border + 5), False) 
+            elif self.text == "":   #picture gui
+                pygame.draw.rect(self.surface, self.colour1, pygame.Rect(self.x, self.y, self.width, self.height))
+                pygame.draw.rect(self.surface, self.colour2, pygame.Rect(self.x + self.width_border, self.y + self.width_border, self.width - self.width_border*2, self.height - self.width_border*2))
+                self.surface.blit(pygame.transform.scale(self.img, (self.width-self.width_border*2, self.height-self.width_border*2)), (self.x+self.width_border, self.y+self.width_border))
+            else:   #combined gui
+                pygame.draw.rect(self.surface, self.colour1, pygame.Rect(self.x, self.y, self.width, self.height))
+                pygame.draw.rect(self.surface, self.colour2, pygame.Rect(self.x + self.width_border, self.y + self.width_border, self.width - self.width_border*2, self.height - self.width_border*2))
+                self.surface.blit(pygame.transform.scale(self.img, (self.height-self.width_border*2, self.height-self.width_border*2)), (self.x+self.width_border, self.y+self.width_border))
+                if self.centered:
+                    text_draw(self.surface, self.text, pygame.font.SysFont("Fixedsys", self.text_size), (self.colour_text), ((self.x+(self.height-self.width_border)+self.width_border+(self.width-self.width_border*2-self.height)/2), self.y+self.height/2), True)
                 else:
-                    img = self.surface.blit(pygame.transform.scale(self.img, (self.width-self.width_border*2, self.height-self.width_border*2)), (self.x+self.width_border, self.y+self.width_border))
-            except Exception as e:
-                pass
-
-            if self.centered:
-                if self.img != "":
-                    text_draw(self.surface, self.text, pygame.font.SysFont("Fixedsys", self.text_size), (self.colour_text), ((self.x+(self.height-self.width_border)+self.width_border+(self.width-self.width_border*2-self.height)/2), self.y+self.height/2), bool)
-                else:
-                    text_draw(self.surface, self.text, pygame.font.SysFont("Fixedsys", self.text_size), (self.colour_text), (self.x+self.width/2, self.y+self.height/2), bool) 
-            else:
-                text_draw(self.surface, self.text, pygame.font.SysFont("Fixedsys", self.text_size), (self.colour_text), (self.x + self.width_border+5, self.y + self.width_border + 5), bool) 
-
+                    pass
         except ValueError:
             pass
+
+
+class Tile:
+    def __init__(self, resource, block, coordinates=tuple[int, int]):
+        self.x, self.y = coordinates
+        self.resource = resource
+        self.block = block
+
+
+class Block:
+    def __init__(self, storage, type=str):
+        self.type = type
+        self.storage = storage
+
 
 class Button():
     def __init__(self, pos, size):
@@ -69,21 +94,44 @@ vertical_bars = False
 sprites = {
     "title": "sprites/title.png",
     "play": "sprites/play_icon.png",
-    "settings": "sprites/settings_icon.png"
+    "settings": "sprites/settings_icon.png",
+    "lock": "sprites/level_locked.png"
 }
 for sprite in sprites:  # the magical converter
     sprites[sprite] = pygame.image.load(sprites[sprite]).convert_alpha()
 
+level_access = {    # man i love space efficiency
+    1 : True,
+    2 : False,
+    3 : False,
+    4 : False,
+    5 : False,
+    6 : False,
+    7 : False,
+    8 : False,
+    9 : False,
+    10 : False,
+    11 : False,
+    12 : False,
+    13 : False,
+    14 : False,
+    15 : False,
+}
 fps = 60
 clock = pygame.time.Clock()
 main_screen = pygame.Surface(default_res, pygame.SRCALPHA)
 pygame.display.set_caption("words.io")
 pygame.display.set_icon(pygame.image.load("icon.png"))
-matrix = []
+matrix = [[Tile("", Block([], ""), (0, 0)), Tile("", Block([], ""), (1, 0)), Tile("", Block([], ""), (2, 0)), Tile("", Block([], ""), (3, 0)), Tile("", Block([], ""), (4, 0))],
+          [Tile("", Block([], ""), (0, 1)), Tile("", Block([], ""), (1, 1)), Tile("", Block([], ""), (2, 1)), Tile("", Block([], ""), (3, 1)), Tile("", Block([], ""), (4, 1))],
+          [Tile("", Block([], ""), (0, 2)), Tile("", Block([], ""), (1, 2)), Tile("", Block([], ""), (2, 2)), Tile("", Block([], ""), (3, 2)), Tile("", Block([], ""), (4, 2))],
+          [Tile("", Block([], ""), (0, 3)), Tile("", Block([], ""), (1, 3)), Tile("", Block([], ""), (2, 3)), Tile("", Block([], ""), (3, 3)), Tile("", Block([], ""), (4, 3))],
+          [Tile("", Block([], ""), (0, 4)), Tile("", Block([], ""), (1, 4)), Tile("", Block([], ""), (2, 4)), Tile("", Block([], ""), (3, 4)), Tile("", Block([], ""), (4, 4))]]
 gui_list = []
 camera_position = [0, 0]
 zoom = 1
 running = True
+main_game_running = False
 test_img = pygame.image.load("icon.png").convert_alpha()
 current_screen = "start"
 
@@ -124,15 +172,15 @@ def update_all_gui():   #ok so, crazy stuff, this actually need to be a function
         "GUI":[
             GUI(main_screen, (1500*width_mult, 25*height_mult), (75*width_mult, 75*height_mult), 5*height_mult, (255, 0, 0), (155, 0, 0), (0, 0, 0), "X", int(100*height_mult), True, ""),
             GUI(main_screen, (500*width_mult, 50*height_mult), (600*width_mult, 100*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "Credits", int(120*height_mult), True, ""),
-            GUI(main_screen, (475*width_mult, 250*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), "Here's a list of all the wonderful people that made this game possible:", int(40*height_mult), False, ""),
-            GUI(main_screen, (75*width_mult, 300*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 0), "Rer_5111", int(40*height_mult), False, ""),
-            GUI(main_screen, (425*width_mult, 300*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " (me) - lead designer, programmer, creator", int(40*height_mult), False, ""),
-            GUI(main_screen, (75*width_mult, 350*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 0, 0), "Tabller", int(40*height_mult), False, ""),
-            GUI(main_screen, (390*width_mult, 350*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - contributor (he did cool suggestions)", int(40*height_mult), False, ""),
-            GUI(main_screen, (75*width_mult, 400*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (0, 0, 255), "Intervinn", int(40*height_mult), False, ""),
-            GUI(main_screen, (410*width_mult, 400*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - contributor (he helped a lot with code)", int(40*height_mult), False, ""),
-            GUI(main_screen, (75*width_mult, 450*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 120, 0), "Kotyarendj", int(40*height_mult), False, ""),
-            GUI(main_screen, (340*width_mult, 450*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - artist (lots of cool sprites)", int(40*height_mult), False, "")
+            GUI(main_screen, (25*width_mult, 250*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), "Here's a list of all the wonderful people that made this game possible:", int(40*height_mult), False, ""),
+            GUI(main_screen, (25*width_mult, 300*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 0), "Rer_5111", int(40*height_mult), False, ""),
+            GUI(main_screen, (150*width_mult, 300*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " (me) - lead designer, programmer, creator", int(40*height_mult), False, ""),
+            GUI(main_screen, (25*width_mult, 350*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 0, 0), "Tabller", int(40*height_mult), False, ""),
+            GUI(main_screen, (125*width_mult, 350*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - contributor (he did cool suggestions)", int(40*height_mult), False, ""),
+            GUI(main_screen, (25*width_mult, 400*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (0, 0, 255), "Intervinn", int(40*height_mult), False, ""),
+            GUI(main_screen, (155*width_mult, 400*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - contributor (he helped a lot with code)", int(40*height_mult), False, ""),
+            GUI(main_screen, (25*width_mult, 450*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 120, 0), "Kotyarendj", int(40*height_mult), False, ""),
+            GUI(main_screen, (175*width_mult, 450*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - artist (lots of cool sprites)", int(40*height_mult), False, "")
         ],
         "Buttons":{
             Button((1500*width_mult, 25*height_mult), (75*width_mult, 75*height_mult)):"current_screen = \"start\""
@@ -151,9 +199,36 @@ def update_all_gui():   #ok so, crazy stuff, this actually need to be a function
         "GUI":[
             GUI(main_screen, (1500*width_mult, 25*height_mult), (75*width_mult, 75*height_mult), 5*height_mult, (255, 0, 0), (155, 0, 0), (0, 0, 0), "X", int(100*height_mult), True, ""),
             GUI(main_screen, (300*width_mult, 50*height_mult), (1000*width_mult, 200*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), "Level select", int(160*height_mult), True, ""),
+            level_get((200*width_mult, 300*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 1),
+            level_get((400*width_mult, 300*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 2),
+            level_get((600*width_mult, 300*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 3),
+            level_get((800*width_mult, 300*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 4),
+            level_get((1000*width_mult, 300*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 5),
+            level_get((1200*width_mult, 300*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 6),
+            level_get((200*width_mult, 500*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 7),
+            level_get((400*width_mult, 500*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 8),
+            level_get((600*width_mult, 500*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 9),
+            level_get((800*width_mult, 500*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 10),
+            level_get((1000*width_mult, 500*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 11),
+            level_get((1200*width_mult, 500*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 12),
+            level_get((200*width_mult, 700*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 13),
+            level_get((400*width_mult, 700*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 14),
+            level_get((600*width_mult, 700*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 15),
+            level_get((800*width_mult, 700*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 16),
+            level_get((1000*width_mult, 700*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 17),
+            level_get((1200*width_mult, 700*height_mult), (150*width_mult, 150*height_mult), (200, 200, 200), (100, 100, 100), (0, 0, 0), 18)
         ],
         "Buttons":{
-            Button((1500*width_mult, 25*height_mult), (75*width_mult, 75*height_mult)):"current_screen = \"start\""
+            Button((1500*width_mult, 25*height_mult), (75*width_mult, 75*height_mult)):"current_screen = \"start\"",
+            Button((200*width_mult, 300*height_mult), (150*width_mult, 150*height_mult)): "main_game_running = True\ncurrent_screen = \"game\""
+        }
+    }
+    game_screen = {
+        "GUI":[
+
+        ],
+        "Buttons":{
+
         }
     }
     screens = {
@@ -161,7 +236,8 @@ def update_all_gui():   #ok so, crazy stuff, this actually need to be a function
     "start2": start_screen2,
     "credits": credits_screen,
     "settings": settings_screen,
-    "level_select": level_select
+    "level_select": level_select,
+    "game": game_screen
 }
 
 update_all_gui()
@@ -204,9 +280,44 @@ while running:
                     exec(buttons.get(button))
                     gui_list = []
                     update_gui()
+        if event.type == pygame.MOUSEWHEEL:
+            if event.y == 1:
+                zoom *= 1.1
+                if zoom > 1.7:
+                    zoom = 1.7
+            if event.y == -1:
+                zoom *= 0.9
+                if zoom < 0.7:
+                    zoom = 0.7
+    if pygame.key.get_pressed()[pygame.K_w]:
+        camera_position[1] += 0.25
+    if pygame.key.get_pressed()[pygame.K_s]:
+        camera_position[1] -= 0.25
+    if pygame.key.get_pressed()[pygame.K_d]:
+        camera_position[0] -= 0.25
+    if pygame.key.get_pressed()[pygame.K_a]:
+        camera_position[0] += 0.25
+    if pygame.key.get_pressed()[pygame.K_ESCAPE]:
+        current_screen = "start"
+        main_game_running = False
+        gui_list = []
+        update_gui()
+    if main_game_running:
+        for i in matrix:    # rendering thingy (from pydustry)
+            for i2 in i:
+                if (-32 * zoom <= i2.x * 32 * zoom + camera_position[0]*32*zoom+math.ceil(width_screen/2) < default_res[0] and
+                        -32 * zoom <= i2.y * 32 * zoom + camera_position[1]*32*zoom+math.ceil(height_screen/2) < default_res[1]):
+                # terrain thingies
+                    pygame.draw.rect(main_screen, (200, 200, 200), pygame.Rect(math.ceil(i2.x * 32 * zoom + camera_position[0]*32*zoom+math.ceil(width_screen/2)), math.ceil((i2.y * 32 * zoom + camera_position[1]*32*zoom+math.ceil(height_screen/2))), math.ceil(32 * zoom), math.ceil(32 * zoom)))
+                    pygame.draw.rect(main_screen, (255, 255, 255), pygame.Rect(math.ceil(i2.x * 32 * zoom + camera_position[0]*32*zoom+math.ceil(width_screen/2))+3, math.ceil((i2.y * 32 * zoom + camera_position[1]*32*zoom+math.ceil(height_screen/2)))+3, math.ceil(26 * zoom), math.ceil(26 * zoom)))
+                    # this draws letters
+                    #if i2.world_block.ore != "none":
+                    #    main_screen.blit(pygame.transform.scale(sprites[i2.world_block.ore],
+                    #                (math.ceil(32 * zoom), math.ceil(32 * zoom))),
+                    #                (math.ceil(i2.x * 32 * zoom + camera_position[0]*32*zoom+math.ceil(width_screen/2)),
+                    #                    math.ceil((i2.y * 32 * zoom + camera_position[1]*32*zoom+math.ceil(height_screen/2)))))
 
-
-    for window in gui_list:
+    for window in gui_list: # this is drawn over the game 
         window.draw()    
     
     if horizontal_bars:     #screen draw offset
