@@ -3,11 +3,7 @@ from perlin_noise import *
 from data import *
 
 def level_get(pos, size, clr1, clr2, clrtxt, level):
-<<<<<<< HEAD
-    if level <= level_access:
-=======
     if level_access.get(level):
->>>>>>> 4692d3cb2c2c0bde0238be1b09b945c197b8f478
         text = level
         pic = ""
     else:
@@ -39,15 +35,11 @@ class GUI:
         self.colour_text = colour_text  #colour of text if such is present
         self.text = text    #text if present
         self.text_size = text_size  #size of text if text present
-        self.centered = centered    #where draw text if present
+        self.centered = centered    #where draw text
         self.img = image    #image if present
 
     def draw(self):
-<<<<<<< HEAD
-        try:    # there is a possibility for an error with very small windows, safety precaution
-=======
         try:
->>>>>>> 4692d3cb2c2c0bde0238be1b09b945c197b8f478
             if self.img == "":  #no image gui
                 pygame.draw.rect(self.surface, self.colour1, pygame.Rect(self.x, self.y, self.width, self.height))
                 pygame.draw.rect(self.surface, self.colour2, pygame.Rect(self.x + self.width_border, self.y + self.width_border, self.width - self.width_border*2, self.height - self.width_border*2))
@@ -74,28 +66,9 @@ class GUI:
 
 class Tile:
     def __init__(self, resource, block, coordinates=tuple[int, int]):
-<<<<<<< HEAD
-        global zoom, camera_position, width_screen, height_screen
         self.x, self.y = coordinates
         self.resource = resource
         self.block = block
-        self.pygame_rect = pygame.Rect(math.ceil(self.x * 32 * zoom + camera_position[0]*32*zoom+math.ceil(width_screen/2)), math.ceil((self.y * 32 * zoom + camera_position[1]*32*zoom+math.ceil(height_screen/2))), math.ceil(32 * zoom), math.ceil(32 * zoom))
-        self.pygame_rect2 = pygame.Rect(math.ceil(self.x * 32 * zoom + camera_position[0]*32*zoom+math.ceil(width_screen/2))+3, math.ceil((self.y * 32 * zoom + camera_position[1]*32*zoom+math.ceil(height_screen/2)))+3, math.ceil(26 * zoom), math.ceil(26 * zoom))
-
-    def update_rect(self):
-        self.pygame_rect.left = math.ceil(self.x * 32 * zoom + camera_position[0]*32*zoom+math.ceil(width_screen/2))
-        self.pygame_rect.top = math.ceil((self.y * 32 * zoom + camera_position[1]*32*zoom+math.ceil(height_screen/2)))
-        self.pygame_rect.width = math.ceil(32 * zoom)
-        self.pygame_rect.height = self.pygame_rect.width
-        self.pygame_rect2.left = self.pygame_rect.left+3
-        self.pygame_rect2.top = self.pygame_rect.top+3
-        self.pygame_rect2.width = math.ceil(26*zoom)
-        self.pygame_rect2.height = self.pygame_rect2.width
-=======
-        self.x, self.y = coordinates
-        self.resource = resource
-        self.block = block
->>>>>>> 4692d3cb2c2c0bde0238be1b09b945c197b8f478
 
 
 class Block:
@@ -127,9 +100,6 @@ sprites = {
 for sprite in sprites:  # the magical converter
     sprites[sprite] = pygame.image.load(sprites[sprite]).convert_alpha()
 
-<<<<<<< HEAD
-level_access = 1    # wow i didnt even need a dict for this one
-=======
 level_access = {    # man i love space efficiency
     1 : True,
     2 : False,
@@ -147,20 +117,16 @@ level_access = {    # man i love space efficiency
     14 : False,
     15 : False,
 }
->>>>>>> 4692d3cb2c2c0bde0238be1b09b945c197b8f478
 fps = 60
 clock = pygame.time.Clock()
 main_screen = pygame.Surface(default_res, pygame.SRCALPHA)
 pygame.display.set_caption("words.io")
 pygame.display.set_icon(pygame.image.load("icon.png"))
-<<<<<<< HEAD
-=======
 matrix = [[Tile("", Block([], ""), (0, 0)), Tile("", Block([], ""), (1, 0)), Tile("", Block([], ""), (2, 0)), Tile("", Block([], ""), (3, 0)), Tile("", Block([], ""), (4, 0))],
           [Tile("", Block([], ""), (0, 1)), Tile("", Block([], ""), (1, 1)), Tile("", Block([], ""), (2, 1)), Tile("", Block([], ""), (3, 1)), Tile("", Block([], ""), (4, 1))],
           [Tile("", Block([], ""), (0, 2)), Tile("", Block([], ""), (1, 2)), Tile("", Block([], ""), (2, 2)), Tile("", Block([], ""), (3, 2)), Tile("", Block([], ""), (4, 2))],
           [Tile("", Block([], ""), (0, 3)), Tile("", Block([], ""), (1, 3)), Tile("", Block([], ""), (2, 3)), Tile("", Block([], ""), (3, 3)), Tile("", Block([], ""), (4, 3))],
           [Tile("", Block([], ""), (0, 4)), Tile("", Block([], ""), (1, 4)), Tile("", Block([], ""), (2, 4)), Tile("", Block([], ""), (3, 4)), Tile("", Block([], ""), (4, 4))]]
->>>>>>> 4692d3cb2c2c0bde0238be1b09b945c197b8f478
 gui_list = []
 camera_position = [0, 0]
 zoom = 1
@@ -212,11 +178,7 @@ def update_all_gui():   #ok so, crazy stuff, this actually need to be a function
             GUI(main_screen, (25*width_mult, 350*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 0, 0), "Tabller", int(40*height_mult), False, ""),
             GUI(main_screen, (125*width_mult, 350*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - contributor (he did cool suggestions)", int(40*height_mult), False, ""),
             GUI(main_screen, (25*width_mult, 400*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (0, 0, 255), "Intervinn", int(40*height_mult), False, ""),
-<<<<<<< HEAD
-            GUI(main_screen, (155*width_mult, 400*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - contributor (he helped optimize the game a lot and general help)", int(40*height_mult), False, ""),
-=======
             GUI(main_screen, (155*width_mult, 400*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - contributor (he helped a lot with code)", int(40*height_mult), False, ""),
->>>>>>> 4692d3cb2c2c0bde0238be1b09b945c197b8f478
             GUI(main_screen, (25*width_mult, 450*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 120, 0), "Kotyarendj", int(40*height_mult), False, ""),
             GUI(main_screen, (175*width_mult, 450*height_mult), (0*width_mult, 0*height_mult), 5*height_mult, (100, 100, 100), (100, 100, 100), (255, 255, 255), " - artist (lots of cool sprites)", int(40*height_mult), False, "")
         ],
@@ -281,12 +243,6 @@ def update_all_gui():   #ok so, crazy stuff, this actually need to be a function
 update_all_gui()
 update_gui()
 
-matrix = []
-for i in range(100):
-    matrix.append([])
-    for i2 in range(100):
-        matrix[i].append(Tile("", Block([], ""), (i, i2)))
-
 
 while running:
     screen.fill((0, 0, 0))
@@ -334,15 +290,6 @@ while running:
                 if zoom < 0.7:
                     zoom = 0.7
     if pygame.key.get_pressed()[pygame.K_w]:
-<<<<<<< HEAD
-        camera_position[1] += 0.25/zoom
-    if pygame.key.get_pressed()[pygame.K_s]:
-        camera_position[1] -= 0.25/zoom
-    if pygame.key.get_pressed()[pygame.K_d]:
-        camera_position[0] -= 0.25/zoom
-    if pygame.key.get_pressed()[pygame.K_a]:
-        camera_position[0] += 0.25/zoom
-=======
         camera_position[1] += 0.25
     if pygame.key.get_pressed()[pygame.K_s]:
         camera_position[1] -= 0.25
@@ -350,7 +297,6 @@ while running:
         camera_position[0] -= 0.25
     if pygame.key.get_pressed()[pygame.K_a]:
         camera_position[0] += 0.25
->>>>>>> 4692d3cb2c2c0bde0238be1b09b945c197b8f478
     if pygame.key.get_pressed()[pygame.K_ESCAPE]:
         current_screen = "start"
         main_game_running = False
@@ -359,20 +305,11 @@ while running:
     if main_game_running:
         for i in matrix:    # rendering thingy (from pydustry)
             for i2 in i:
-<<<<<<< HEAD
-                if zoom > 0.7:  #really cool thing inspired by shapez, if the zoom is big we dont draw the map and just do visualisations of blocks 
-                    if (-32 * zoom <= i2.x * 32 * zoom + camera_position[0]*32*zoom+math.ceil(width_screen/2) < default_res[0] and
-                            -32 * zoom <= i2.y * 32 * zoom + camera_position[1]*32*zoom+math.ceil(height_screen/2) < default_res[1]):
-                        i2.update_rect()
-                        pygame.draw.rect(main_screen, (220, 220, 220), i2.pygame_rect)
-                        pygame.draw.rect(main_screen, (255, 255, 255), i2.pygame_rect2)
-=======
                 if (-32 * zoom <= i2.x * 32 * zoom + camera_position[0]*32*zoom+math.ceil(width_screen/2) < default_res[0] and
                         -32 * zoom <= i2.y * 32 * zoom + camera_position[1]*32*zoom+math.ceil(height_screen/2) < default_res[1]):
                 # terrain thingies
                     pygame.draw.rect(main_screen, (200, 200, 200), pygame.Rect(math.ceil(i2.x * 32 * zoom + camera_position[0]*32*zoom+math.ceil(width_screen/2)), math.ceil((i2.y * 32 * zoom + camera_position[1]*32*zoom+math.ceil(height_screen/2))), math.ceil(32 * zoom), math.ceil(32 * zoom)))
                     pygame.draw.rect(main_screen, (255, 255, 255), pygame.Rect(math.ceil(i2.x * 32 * zoom + camera_position[0]*32*zoom+math.ceil(width_screen/2))+3, math.ceil((i2.y * 32 * zoom + camera_position[1]*32*zoom+math.ceil(height_screen/2)))+3, math.ceil(26 * zoom), math.ceil(26 * zoom)))
->>>>>>> 4692d3cb2c2c0bde0238be1b09b945c197b8f478
                     # this draws letters
                     #if i2.world_block.ore != "none":
                     #    main_screen.blit(pygame.transform.scale(sprites[i2.world_block.ore],
