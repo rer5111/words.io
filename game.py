@@ -11,15 +11,6 @@ def level_get(pos, size, clr1, clr2, clrtxt, level):
         text = ""
     return GUI(main_screen, pos, size, 5*height_mult, clr1, clr2, clrtxt, text, int(90*height_mult), True, pic)
 
-def level_get(pos, size, clr1, clr2, clrtxt, level):
-    if level_access.get(level):
-        text = level
-        pic = ""
-    else:
-        pic = sprites["lock"]
-        text = ""
-    return GUI(main_screen, pos, size, 5*height_mult, clr1, clr2, clrtxt, text, int(90*height_mult), True, pic)
-
 def text_draw(surface, text: str = '', font=pygame.font.Font, text_clr=tuple[float, float, float], text_pos=tuple[float, float], centered=bool):
     img = font.render(f"{text}", True, text_clr)
     if not centered:
