@@ -3,6 +3,66 @@ from perlin_noise import *
 from data import levels, buildings
 
 
+def drill_code():
+    i.block.cooldown1 += 1
+    if i.resource != "" and len(i.block.storage) < buildings.get("drill").get("storage") and i.block.cooldown1 > 60:
+        i.block.storage.append(i.resource)
+        i.block.cooldown1 = 0
+    if i.block.storage != []:
+        i.block.cooldown2 += 1
+        if i.block.cooldown2 > 15:
+            check_tile = matrix_get(i.y+i.block.direction[1], i.x+i.block.direction[0])
+            if check_tile != 0 and len(check_tile.block.storage) < buildings.get(check_tile.block.type).get("storage"):
+                matrix[i.y+i.block.direction[1]][i.x+i.block.direction[0]].block.storage.append(i.block.storage[0])
+                i.block.storage.remove(i.block.storage[0])
+                i.block.cooldown2 = 0
+
+def conveyor_code():
+    offset = 0
+    for letter in i.block.storage:
+        offset += 9
+        if len(letter)<=4:
+            text_draw(main_screen, letter, pygame.font.SysFont("Fixedsys", math.ceil(22*zoom)), (0, 0, 0), [math.ceil(i.x * 32 * zoom + camera_position[0]*32*zoom+16*zoom), math.ceil(i.y * 32 * zoom + camera_position[1]*32*zoom-offset*zoom+34*zoom)], True)
+        else:
+            text_draw(main_screen, letter, pygame.font.SysFont("Fixedsys", math.ceil((3/len(letter))*22*zoom)), (0, 0, 0), [math.ceil(i.x * 32 * zoom + camera_position[0]*32*zoom+16*zoom), math.ceil(i.y * 32 * zoom + camera_position[1]*32*zoom-offset*zoom+34*zoom)], True)
+    if i.block.storage != []:
+        i.block.cooldown1 += 1
+        if i.block.cooldown1 > 15 and i.block.storage != []:
+            check_tile = matrix_get(i.y+i.block.direction[1], i.x+i.block.direction[0])
+            if check_tile != 0 and len(check_tile.block.storage) < buildings.get(check_tile.block.type).get("storage"):
+                do = True
+                if check_tile.block.type == "combiner":
+                    if [i.x, i.y] == [check_tile.x+check_tile.block.direction[0]*-1, check_tile.y+check_tile.block.direction[1]*-1]:
+                        if check_tile.block.special1:
+                            do = False
+                        else:
+                            check_tile.block.special1 = i.block.storage[0]
+                    else:
+                        if check_tile.block.special2:
+                            do = False
+                        else:
+                            check_tile.block.special2 = i.block.storage[0]
+                if do:
+                    matrix[i.y+i.block.direction[1]][i.x+i.block.direction[0]].block.storage.append(i.block.storage[0])
+                    i.block.storage.remove(i.block.storage[0])
+                    i.block.cooldown1 = 0
+
+def storage_code():
+    global main_storage
+    main_storage = i.block.storage
+
+def combiner_code():
+    i.block.cooldown1 += 1
+    if i.block.cooldown1 > 15 and len(i.block.storage) == 2:
+        check_tile = matrix_get(i.y+i.block.direction[1], i.x+i.block.direction[0])
+        if check_tile != 0 and len(check_tile.block.storage) < buildings.get(check_tile.block.type).get("storage"):
+            result = i.block.special1+i.block.special2
+            matrix[i.y+i.block.direction[1]][i.x+i.block.direction[0]].block.storage.append(result)
+            i.block.storage = []
+            i.block.cooldown1 = 0
+            i.block.special1 = ""
+            i.block.special2 = ""
+
 def level_get(pos, size, clr1, clr2, clrtxt, level):
     if level <= level_access:
         text = level
@@ -22,14 +82,18 @@ def level_create(data=tuple):
         matrix.append([]) 
         for tile in row:
             x+=1
-            matrix[y].append(Tile(tile[0], Block(tile[1], tile[2]), [x, y]))
+            matrix[y].append(Tile(tile[0], Block(tile[1], tile[2], tile[3]), [x, y]))
 
 def matrix_get(x, y):   #in order to work with the matrix properly and not have it return the first row upon [-1] which might be out of bounds we need this
-    if not x or y < 0:
+    if x >= 0 and y >= 0 and not x > len(matrix[0])-1 and not y > len(matrix)-1:
         return matrix[x][y]
     else:
-        return 0    # haha no execution for you
+        return 0    # no execution for you
 
+def GUI_get(level):
+    gui = levels.get(level).get("GUI")
+    if gui != None:
+        return GUI(main_screen, (gui[0][0]*width_mult, gui[0][1]*height_mult), (gui[1][0]*width_mult, gui[1][1]*height_mult), 5*height_mult, (200, 200, 200), (100, 100, 100), (0, 0, 0), gui[2], math.ceil(gui[3]*height_mult), True, "")
 def text_draw(surface, text: str = '', font=pygame.font.Font, text_clr=tuple[float, float, float], text_pos=tuple[float, float], centered=bool):
     img = font.render(f"{text}", True, text_clr)
     if not centered:
@@ -104,9 +168,14 @@ class Tile:
 
 
 class Block:
-    def __init__(self, storage, type=str):
+    def __init__(self, type=str, storage=tuple, direction=tuple[int, int]):
         self.type = type
         self.storage = storage
+        self.direction = direction
+        self.cooldown1 = 0
+        self.cooldown2 = 0
+        self.special1 = ""
+        self.special2 = ""
 
 
 class Button():
@@ -129,21 +198,36 @@ sprites = {
     "settings": "sprites/settings_icon.png",
     "lock": "sprites/level_locked.png",
     "conveyor": "sprites/conveyor_up.png",
-    "drill": "sprites/drill.png"
+    "drill": "sprites/drill.png",
+    "storage": "sprites/storage.png",
+    "combiner": "sprites/combiner.png"
 }
 for sprite in sprites:  # the magical converter
     sprites[sprite] = pygame.image.load(sprites[sprite]).convert_alpha()
 
+functions = {
+    "drill": "drill_code()",
+    "conveyor": "conveyor_code()",
+    "storage": "storage_code()",
+    "combiner": "combiner_code()"
+}
+
 level_access = 1    # wow i didnt even need a dict for this one
+level = 0
 fps = 60
 clock = pygame.time.Clock()
 main_screen = pygame.Surface(default_res, pygame.SRCALPHA)
+second_screen = pygame.Surface(default_res, pygame.SRCALPHA)    #for that one thing that just has to go on top
 pygame.display.set_caption("words.io")
 pygame.display.set_icon(pygame.image.load("icon.png"))
 current_tiles = []
 gui_list = []
-camera_position = [0, 0]
-zoom = 1
+selected = ""
+camera_position = [15, 7]
+zoom = 1.5
+tick = 0
+projection_rotation = 0
+main_storage = []
 running = True
 main_game_running = False
 test_img = pygame.image.load("icon.png").convert_alpha()
@@ -234,15 +318,21 @@ def update_all_gui():   #ok so, crazy stuff, this actually need to be a function
         ],
         "Buttons":{
             Button((1500*width_mult, 25*height_mult), (75*width_mult, 75*height_mult)):"current_screen = \"start\"",
-            Button((200*width_mult, 300*height_mult), (150*width_mult, 150*height_mult)): "main_game_running = True\ncurrent_screen = \"game\"\nlevel_create(levels.get(1).get(\"map\"))"
+            Button((200*width_mult, 300*height_mult), (150*width_mult, 150*height_mult)): "main_game_running = True\ncurrent_screen = \"game\"\nlevel_create(levels.get(1).get(\"map\"))\nlevel=1\nupdate_all_gui()"
         }
     }
     game_screen = {
         "GUI":[
-
+            GUI(main_screen, (400*width_mult, 750*height_mult), (800*width_mult, 100*height_mult), 5*height_mult, (120, 120, 120), (220, 220, 220), (0, 0, 0), "", 0, False, ""),
+            GUI(main_screen, (410*width_mult, 760*height_mult), (80*width_mult, 80*height_mult), 0, (120, 120, 120, 255), (220, 220, 220, 255), (0, 0, 0), "", 0, False, sprites["conveyor"]),
+            GUI(main_screen, (500*width_mult, 760*height_mult), (80*width_mult, 80*height_mult), 0, (120, 120, 120, 255), (220, 220, 220, 255), (0, 0, 0), "", 0, False, sprites["drill"]),
+            GUI(main_screen, (590*width_mult, 760*height_mult), (80*width_mult, 80*height_mult), 0, (120, 120, 120, 255), (220, 220, 220, 255), (0, 0, 0), "", 0, False, sprites["combiner"]),
+            GUI_get(level)
         ],
         "Buttons":{
-
+            Button((410*width_mult, 760*height_mult), (80*width_mult, 80*height_mult)):"selected = \"conveyor\"",
+            Button((500*width_mult, 760*height_mult), (80*width_mult, 80*height_mult)):"selected = \"drill\"",
+            Button((590*width_mult, 760*height_mult), (80*width_mult, 80*height_mult)):"selected = \"combiner\""
         }
     }
     screens = {
@@ -258,11 +348,15 @@ update_all_gui()
 update_gui()
 
 matrix = []
-
+level_create(levels.get(0).get("map"))
 
 while running:
     screen.fill((0, 0, 0))
     main_screen.fill((100, 100, 100))
+    tick += 1
+    movement = False
+    if tick > 60:
+        tick = 1
 
 
     for event in pygame.event.get():
@@ -285,45 +379,78 @@ while running:
             gui_list = []
             update_all_gui()
             update_gui()
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+        if event.type == pygame.MOUSEBUTTONDOWN:
             x_pressed, y_pressed = pygame.mouse.get_pos()
             if horizontal_bars:
                 x_pressed -= (screen.get_width()-width_screen)/2
             else:
                 y_pressed -= (screen.get_height()-height_screen)/2
-            for button in buttons:
-                if button.x_pos < x_pressed < button.x_pos+button.width and button.y_pos < y_pressed < button.y_pos + button.height:
-                    exec(buttons.get(button))
-                    gui_list = []
-                    update_gui()
+            if event.button == 1:
+                if selected == "":
+                    for button in buttons:
+                        if button.x_pos < x_pressed < button.x_pos+button.width and button.y_pos < y_pressed < button.y_pos + button.height:
+                            exec(buttons.get(button))
+                            gui_list = []
+                            update_gui()
+                else:
+                    projection = [-math.ceil(camera_position[0]-(x_pressed/(32*zoom))), -math.ceil(camera_position[1]-(y_pressed/(32*zoom)))]
+                    if matrix_get(projection[1], projection[0]) != 0 and matrix_get(projection[1], projection[0]).block.type == "":
+                        matrix[projection[1]][projection[0]].block.type = selected
+                        if projection_rotation == 90 or projection_rotation == -270:
+                            matrix[projection[1]][projection[0]].block.direction = [-1, 0]
+                        elif abs(projection_rotation) == 180:
+                            matrix[projection[1]][projection[0]].block.direction = [0, 1]
+                        elif projection_rotation == 270 or projection_rotation == -90:
+                            matrix[projection[1]][projection[0]].block.direction = [1, 0]
+                        else:
+                            matrix[projection[1]][projection[0]].block.direction = [0, -1]
+            elif event.button == 3:
+                if selected != "":
+                    selected = ""
+                else:
+                    mouse_pos = [-math.ceil(camera_position[0]-(x_pressed/(32*zoom))), -math.ceil(camera_position[1]-(y_pressed/(32*zoom)))]
+                    if matrix_get(mouse_pos[1], mouse_pos[0]):
+                        matrix[mouse_pos[1]][mouse_pos[0]].block = Block("", [], [])
         if event.type == pygame.MOUSEWHEEL:
-            x_mouse, y_mouse = pygame.mouse.get_pos()
-            mouse_pos1 = [camera_position[0]-(x_mouse/(32*zoom)), camera_position[1]-(y_mouse/(32*zoom))]
-            if event.y == 1:
-                zoom *= 1.1
-                if zoom > 2.5:
-                    zoom = 2.5
-            if event.y == -1:
-                zoom *= 0.9
-                if zoom < 0.7:
-                    zoom = 0.7
-            mouse_pos2 = [camera_position[0]-(x_mouse/(32*zoom)), camera_position[1]-(y_mouse/(32*zoom))]
-            camera_position[0]+= (mouse_pos1[0]-mouse_pos2[0])
-            camera_position[1]+= (mouse_pos1[1]-mouse_pos2[1])
+            if selected == "":
+                x_mouse, y_mouse = pygame.mouse.get_pos()
+                mouse_pos1 = [camera_position[0]-(x_mouse/(32*zoom)), camera_position[1]-(y_mouse/(32*zoom))]
+                if event.y == 1:
+                    zoom *= 1.1
+                    if zoom > 2.5:
+                        zoom = 2.5
+                if event.y == -1:
+                    zoom *= 0.9
+                    if zoom < 0.7:
+                        zoom = 0.7
+                mouse_pos2 = [camera_position[0]-(x_mouse/(32*zoom)), camera_position[1]-(y_mouse/(32*zoom))]
+                camera_position[0]+= (mouse_pos1[0]-mouse_pos2[0])
+                camera_position[1]+= (mouse_pos1[1]-mouse_pos2[1])
+            else:
+                if event.y == 1:
+                    projection_rotation += 90
+                else:
+                    projection_rotation -= 90
+                if projection_rotation == -360 or projection_rotation == 360:
+                    projection_rotation = 0
     if pygame.key.get_pressed()[pygame.K_w]:
         camera_position[1] += 0.25/zoom
+        movement = True
     if pygame.key.get_pressed()[pygame.K_s]:
         camera_position[1] -= 0.25/zoom
+        movement = True
     if pygame.key.get_pressed()[pygame.K_d]:
         camera_position[0] -= 0.25/zoom
+        movement = True
     if pygame.key.get_pressed()[pygame.K_a]:
         camera_position[0] += 0.25/zoom
+        movement = True
     if pygame.key.get_pressed()[pygame.K_ESCAPE]:
         current_screen = "start"
         main_game_running = False
         gui_list = []
         update_gui()
-    if main_game_running:
+    if True:
         current_tiles = []
         left_limit = math.floor(-camera_position[0])
         right_limit = math.ceil(-camera_position[0]+width_screen/32/zoom)
@@ -342,16 +469,40 @@ while running:
             if i.resource != "":
                 text_draw(main_screen, i.resource, pygame.font.SysFont("Fixedsys", math.floor(26*zoom)), (0, 0, 0), [i.pygame_rect.left+(16*zoom), i.pygame_rect.top+(16*zoom)])
             if i.block.type != "":
-                main_screen.blit(pygame.transform.scale(sprites[i.block.type], (math.ceil(32 * zoom), math.ceil(32 * zoom))),
+                direct_block = i.block.direction
+                if direct_block[0] == 0:
+                    if direct_block[1] == 1:
+                        block_angle = 180
+                    else:
+                        block_angle = 0
+                else:
+                    if direct_block[0] == 1:
+                        block_angle = 270
+                    else:
+                        block_angle = 90
+                main_screen.blit(pygame.transform.rotate(pygame.transform.scale(sprites[i.block.type], (math.ceil(32 * zoom), math.ceil(32 * zoom))), block_angle),
                     (math.ceil(i.x * 32 * zoom + camera_position[0]*32*zoom),
                     math.ceil((i.y * 32 * zoom + camera_position[1]*32*zoom))))
-                exec(buildings.get(i.block.type).get("code"))
+                if not movement:
+                    exec(functions.get(i.block.type))
+        if selected != "":
+                    x_mouse, y_mouse = pygame.mouse.get_pos()
+                    if horizontal_bars:
+                        x_mouse -= (screen.get_width()-width_screen)/2
+                    else:
+                        y_mouse -= (screen.get_height()-height_screen)/2
+                    projection = [-math.ceil(camera_position[0]-(x_mouse/(32*zoom))), -math.ceil(camera_position[1]-(y_mouse/(32*zoom)))]
+                    main_screen.blit(pygame.transform.rotate(pygame.transform.scale(sprites[selected], (math.ceil(32 * zoom), math.ceil(32 * zoom))), projection_rotation),  ((projection[0]*32*zoom + camera_position[0]*32*zoom),(projection[1]*32*zoom + camera_position[1]*32*zoom)))
+    exec(levels.get(level).get("code"))
     for window in gui_list: # this is drawn over the game 
-        window.draw()    
+        if window != None:
+            window.draw()    
     
     if horizontal_bars:     #screen draw offset
         screen.blit(main_screen, ((screen.get_width()-width_screen)/2,0))
+        screen.blit(second_screen, ((screen.get_width()-width_screen)/2,0))
     else:
         screen.blit(main_screen, (0,(screen.get_height()-height_screen)/2))
+        screen.blit(second_screen, (0,(screen.get_width()-width_screen)/2))
     pygame.display.flip()
-    clock.tick(fps)
+    clock.tick(60)
